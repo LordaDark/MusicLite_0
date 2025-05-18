@@ -12,6 +12,7 @@ export default publicProcedure
   .input(searchInputSchema)
   .query(async ({ input }) => {
     try {
+      console.log("[SEARCH] Richiesta ricevuta:", input);
       // In a real implementation, you would use the YouTube Data API
       // For now, we'll return more realistic mock data
       
@@ -53,12 +54,17 @@ export default publicProcedure
         };
       });
       
+      console.log("[SEARCH] Risultati trovati:", results.length);
       return {
         results,
         query: input.query,
       };
     } catch (error) {
       console.error("Error searching YouTube:", error);
-      throw new Error("Failed to search YouTube");
+      return {
+        results: [],
+        query: input.query,
+        error: error instanceof Error ? error.message : String(error)
+      };
     }
   });

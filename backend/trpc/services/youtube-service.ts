@@ -1,5 +1,6 @@
 import ytdl from "ytdl-core";
 import { z } from "zod";
+import fetch from "node-fetch";
 
 // Interfaccia per i risultati di ricerca
 interface SearchResult {
@@ -14,81 +15,42 @@ interface SearchResult {
   youtubeId: string;
 }
 
+// Chiave API YouTube (da impostare in variabile ambiente)
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || "";
+
 // Cerca video su YouTube
 export async function searchYouTube(query: string, limit = 20): Promise<SearchResult[]> {
-  try {
-    // In una implementazione reale, useresti l'API di YouTube
-    // Per ora, restituiamo dati mock più realistici basati sulla query
-    
-    // Simula un ritardo di API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Estrai possibili artisti e titoli dalla query
-    const queryParts = query.split(/\s+/);
-    const possibleArtists = [
-      "Ed Sheeran", "Taylor Swift", "The Weeknd", "Billie Eilish", 
-      "Post Malone", "Ariana Grande", "Drake", "BTS", "Dua Lipa",
-      "Coldplay", "Imagine Dragons", "Adele", "Justin Bieber", "Rihanna"
-    ];
-    
-    // Trova artisti che potrebbero corrispondere alla query
-    const matchingArtists = possibleArtists.filter(artist => 
-      artist.toLowerCase().includes(query.toLowerCase()) ||
-      queryParts.some(part => artist.toLowerCase().includes(part.toLowerCase()))
-    );
-    
-    // Se non ci sono artisti corrispondenti, usa alcuni artisti casuali
-    const artists = matchingArtists.length > 0 
-      ? matchingArtists 
-      : possibleArtists.sort(() => Math.random() - 0.5).slice(0, 5);
-    
-    const genres = ["Pop", "Hip-Hop", "R&B", "Rock", "Electronic", "Latin"];
-    
-    // Genera titoli basati sulla query
-    const generateTitle = (index: number) => {
-      // Se la query sembra essere un titolo di canzone, usala come base
-      if (query.length > 10 || query.includes(" ")) {
-        return query;
-      }
-      
-      // Altrimenti, genera titoli che includono la query
-      const templates = [
-        `${query} (Official Music Video)`,
-        `${query} - Remix`,
-        `${query} ft. Various Artists`,
-        `The Best of ${query}`,
-        `${query} Live Performance`,
-        `${query} Acoustic Version`,
-        `${query} - Original Song`,
-      ];
-      
-      return templates[index % templates.length];
+  if (!YOUTUBE_API_KEY) throw new Error("YouTube API key non configurata");
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${limit}&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Errore nella chiamata alle API di YouTube");
+  const data = await res.json();
+  const videoIds = data.items.map((item: any) => item.id.videoId).join(",");
+  // Recupera dettagli dei video (durata, ecc)
+  const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+  const detailsRes = await fetch(detailsUrl);
+  if (!detailsRes.ok) throw new Error("Errore nel recupero dettagli video");
+  const detailsData = await detailsRes.json();
+  const results: SearchResult[] = detailsData.items.map((item: any) => {
+    const durationISO = item.contentDetails.duration;
+    // Converti ISO 8601 duration in secondi
+    const match = durationISO.match(/PT(?:(\d+)M)?(?:(\d+)S)?/);
+    const minutes = match && match[1] ? parseInt(match[1]) : 0;
+    const seconds = match && match[2] ? parseInt(match[2]) : 0;
+    const duration = minutes * 60 + seconds;
+    return {
+      id: item.id,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle,
+      album: item.snippet.channelTitle + " - YouTube",
+      genre: "YouTube",
+      thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || "",
+      duration,
+      youtubeId: item.id,
+      audioUrl: `/api/youtube/audio/${item.id}`
     };
-    
-    // Genera risultati di ricerca
-    const results: SearchResult[] = Array.from({ length: limit }, (_, i) => {
-      const artist = artists[i % artists.length];
-      const title = generateTitle(i);
-      const genre = genres[Math.floor(Math.random() * genres.length)];
-      const id = `video-${i}-${Date.now()}`;
-      
-      return {
-        id,
-        title,
-        artist,
-        album: `${artist} - Greatest Hits`,
-        genre,
-        thumbnail: `https://picsum.photos/seed/${artist.replace(/\s+/g, '')}/300/300`,
-        duration: Math.floor(Math.random() * 180) + 120, // 2-5 minuti
-        youtubeId: id,
-      };
-    });
-    
-    return results;
-  } catch (error) {
-    console.error("Error searching YouTube:", error);
-    throw new Error("Failed to search YouTube");
-  }
+  });
+  return results;
 }
 
 // Ottieni informazioni su un video YouTube
