@@ -12,71 +12,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchYouTube = searchYouTube;
 exports.getYouTubeVideoInfo = getYouTubeVideoInfo;
 exports.downloadYouTubeVideo = downloadYouTubeVideo;
+const axios = require("axios");
 // Cerca video su YouTube
-function searchYouTube(query_1) {
-    return __awaiter(this, arguments, void 0, function* (query, limit = 20) {
-        try {
-            // In una implementazione reale, useresti l'API di YouTube
-            // Per ora, restituiamo dati mock più realistici basati sulla query
-            // Simula un ritardo di API
-            yield new Promise(resolve => setTimeout(resolve, 500));
-            // Estrai possibili artisti e titoli dalla query
-            const queryParts = query.split(/\s+/);
-            const possibleArtists = [
-                "Ed Sheeran", "Taylor Swift", "The Weeknd", "Billie Eilish",
-                "Post Malone", "Ariana Grande", "Drake", "BTS", "Dua Lipa",
-                "Coldplay", "Imagine Dragons", "Adele", "Justin Bieber", "Rihanna"
-            ];
-            // Trova artisti che potrebbero corrispondere alla query
-            const matchingArtists = possibleArtists.filter(artist => artist.toLowerCase().includes(query.toLowerCase()) ||
-                queryParts.some(part => artist.toLowerCase().includes(part.toLowerCase())));
-            // Se non ci sono artisti corrispondenti, usa alcuni artisti casuali
-            const artists = matchingArtists.length > 0
-                ? matchingArtists
-                : possibleArtists.sort(() => Math.random() - 0.5).slice(0, 5);
-            const genres = ["Pop", "Hip-Hop", "R&B", "Rock", "Electronic", "Latin"];
-            // Genera titoli basati sulla query
-            const generateTitle = (index) => {
-                // Se la query sembra essere un titolo di canzone, usala come base
-                if (query.length > 10 || query.includes(" ")) {
-                    return query;
-                }
-                // Altrimenti, genera titoli che includono la query
-                const templates = [
-                    `${query} (Official Music Video)`,
-                    `${query} - Remix`,
-                    `${query} ft. Various Artists`,
-                    `The Best of ${query}`,
-                    `${query} Live Performance`,
-                    `${query} Acoustic Version`,
-                    `${query} - Original Song`,
-                ];
-                return templates[index % templates.length];
-            };
-            // Genera risultati di ricerca
-            const results = Array.from({ length: limit }, (_, i) => {
-                const artist = artists[i % artists.length];
-                const title = generateTitle(i);
-                const genre = genres[Math.floor(Math.random() * genres.length)];
-                const id = `video-${i}-${Date.now()}`;
-                return {
-                    id,
-                    title,
-                    artist,
-                    album: `${artist} - Greatest Hits`,
-                    genre,
-                    thumbnail: `https://picsum.photos/seed/${artist.replace(/\s+/g, '')}/300/300`,
-                    duration: Math.floor(Math.random() * 180) + 120, // 2-5 minuti
-                    youtubeId: id,
-                };
-            });
-            return results;
+async function searchYouTube(query, limit = 20) {
+    try {
+        const apiKey = process.env.YOUTUBE_API_KEY;
+        if (!apiKey) {
+            throw new Error("YOUTUBE_API_KEY non impostata nelle variabili d'ambiente");
         }
-        catch (error) {
-            console.error("Error searching YouTube:", error);
-            throw new Error("Failed to search YouTube");
+        const url = `https://www.googleapis.com/youtube/v3/search`;
+        const params = {
+            part: "snippet",
+            q: query,
+            maxResults: limit,
+            type: "video",
+            key: apiKey
+        };
+        const response = await axios.get(url, { params });
+        if (!response.data || !response.data.items) {
+            throw new Error("Risposta API YouTube non valida");
         }
-    });
+        const results = response.data.items.map(item => ({
+            id: item.id.videoId,
+            title: item.snippet.title,
+            artist: item.snippet.channelTitle,
+            album: item.snippet.channelTitle + " - YouTube",
+            genre: "YouTube",
+            thumbnail: item.snippet.thumbnails && item.snippet.thumbnails.default ? item.snippet.thumbnails.default.url : "",
+            duration: null,
+            youtubeId: item.id.videoId
+        }));
+        return results;
+    } catch (error) {
+        console.error("Errore nella ricerca YouTube:", error?.response?.data || error.message);
+        throw new Error("Errore nella ricerca su YouTube");
+    }
 }
 // Ottieni informazioni su un video YouTube
 function getYouTubeVideoInfo(videoId) {
