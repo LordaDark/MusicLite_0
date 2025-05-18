@@ -96,7 +96,7 @@ function getYouTubeVideoInfo(videoId) {
                 duration: Math.floor(Math.random() * 300) + 60, // 1-6 minuti
                 genre: ["Pop", "Rock", "Hip-Hop", "Electronic"][Math.floor(Math.random() * 4)],
                 releaseDate: new Date().toISOString(),
-                audioUrl: `https://example.com/audio/${videoId}.mp3`, // Questo sarebbe un URL di stream reale
+                audioUrl: `https://musiclite-api.onrender.com/audio/${videoId}.mp3`, // Questo sarebbe un URL di stream reale
             };
         }
         catch (error) {
@@ -116,7 +116,7 @@ function downloadYouTubeVideo(videoId_1) {
             // Restituisci informazioni mock sul download
             return {
                 id: videoId,
-                downloadUrl: `https://example.com/download/${videoId}.mp3`,
+                downloadUrl: `https://musiclite-api.onrender.com/download/${videoId}.mp3`,
                 fileName: `song-${videoId}.mp3`,
                 fileSize: Math.floor(Math.random() * 10000000) + 1000000, // 1-11 MB
                 quality,

@@ -49,7 +49,7 @@ export default publicProcedure
           thumbnail: `https://picsum.photos/seed/${artist.replace(/\s+/g, '')}/300/300`,
           duration: Math.floor(Math.random() * 180) + 120, // 2-5 minutes
           viewCount: Math.floor(Math.random() * 10000000),
-          audioUrl: `https://example.com/audio/${title.replace(/\s+/g, '_')}.mp3`,
+          audioUrl: `https://musiclite-api.onrender.com/audio/${title.replace(/\s+/g, '_')}.mp3`,
         };
       });
       

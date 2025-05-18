@@ -11,6 +11,7 @@ const downloadInputSchema = z.object({
 export default publicProcedure
   .input(downloadInputSchema)
   .mutation(async ({ input }) => {
+    console.log("[DOWNLOAD] Richiesta ricevuta:", input);
     try {
       // In a real implementation, you would use ytdl-core to download the audio
       // For now, we'll return mock data
@@ -19,7 +20,7 @@ export default publicProcedure
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Return mock download info
-      return {
+      const result = {
         id: input.videoId,
         downloadUrl: `https://example.com/download/${input.videoId}.mp3`,
         fileName: `song-${input.videoId}.mp3`,
@@ -27,8 +28,10 @@ export default publicProcedure
         quality: input.quality,
         success: true,
       };
+      console.log("[DOWNLOAD] Risposta inviata:", result);
+      return result;
     } catch (error) {
-      console.error("Error downloading video:", error);
+      console.error("[DOWNLOAD] Errore durante il download:", error);
       throw new Error("Failed to download video");
     }
   });

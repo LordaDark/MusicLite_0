@@ -27,7 +27,7 @@ export default publicProcedure
         duration: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
         genre: ["Pop", "Rock", "Hip-Hop", "Electronic"][Math.floor(Math.random() * 4)],
         releaseDate: new Date().toISOString(),
-        audioUrl: `https://example.com/audio/${input.videoId}.mp3`, // This would be a real stream URL
+        audioUrl: `https://musiclite-api.onrender.com/audio/${input.videoId}.mp3`, // This would be a real stream URL
       };
     } catch (error) {
       console.error("Error getting video info:", error);

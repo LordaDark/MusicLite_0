@@ -87,7 +87,7 @@ exports.default = create_context_1.publicProcedure
                         thumbnail: "https://picsum.photos/seed/".concat(artist.replace(/\s+/g, ''), "/300/300"),
                         duration: Math.floor(Math.random() * 180) + 120, // 2-5 minutes
                         viewCount: Math.floor(Math.random() * 10000000),
-                        audioUrl: "https://example.com/audio/".concat(title.replace(/\s+/g, '_'), ".mp3"),
+                        audioUrl: "https://musiclite-api.onrender.com/audio/".concat(title.replace(/\s+/g, '_'), ".mp3"),
                     };
                 });
                 return [2 /*return*/, {

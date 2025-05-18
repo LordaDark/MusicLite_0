@@ -70,7 +70,7 @@ exports.default = create_context_1.publicProcedure
                         duration: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
                         genre: ["Pop", "Rock", "Hip-Hop", "Electronic"][Math.floor(Math.random() * 4)],
                         releaseDate: new Date().toISOString(),
-                        audioUrl: "https://example.com/audio/".concat(input.videoId, ".mp3"), // This would be a real stream URL
+                        audioUrl: "https://musiclite-api.onrender.com/audio/".concat(input.videoId, ".mp3"), // This would be a real stream URL
                     }];
             case 2:
                 error_1 = _c.sent();

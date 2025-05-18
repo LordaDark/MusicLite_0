@@ -64,7 +64,7 @@ exports.default = create_context_1.publicProcedure
                 // Return mock download info
                 return [2 /*return*/, {
                         id: input.videoId,
-                        downloadUrl: "https://example.com/download/".concat(input.videoId, ".mp3"),
+                        downloadUrl: "https://musiclite-api.onrender.com/download/".concat(input.videoId, ".mp3"),
                         fileName: "song-".concat(input.videoId, ".mp3"),
                         fileSize: Math.floor(Math.random() * 10000000) + 1000000, // 1-11 MB
                         quality: input.quality,
