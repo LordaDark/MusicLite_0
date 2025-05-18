@@ -10,21 +10,19 @@ const downloadInputSchema = z.object({
 
 export default publicProcedure
   .input(downloadInputSchema)
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx }) => {
     console.log("[DOWNLOAD] Richiesta ricevuta:", input);
     try {
-      // In a real implementation, you would use ytdl-core to download the audio
-      // For now, we'll return mock data
-      
-      // Simulate download delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Return mock download info
+      // Streamma l'audio reale da YouTube usando ytdl-core
+      const info = await ytdl.getInfo(input.videoId);
+      const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
+      if (!format || !format.url) throw new Error("Audio non trovato");
+      // Restituisci direttamente l'URL audio di YouTube (stream diretto)
       const result = {
         id: input.videoId,
-        downloadUrl: `https://example.com/download/${input.videoId}.mp3`,
-        fileName: `song-${input.videoId}.mp3`,
-        fileSize: Math.floor(Math.random() * 10000000) + 1000000, // 1-11 MB
+        downloadUrl: format.url,
+        fileName: `${info.videoDetails.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${input.videoId}.mp3`,
+        fileSize: format.contentLength ? parseInt(format.contentLength) : null,
         quality: input.quality,
         success: true,
       };

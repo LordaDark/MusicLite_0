@@ -23,17 +23,45 @@ export async function searchYouTube(query: string, limit = 20): Promise<SearchRe
   if (!YOUTUBE_API_KEY) throw new Error("YouTube API key non configurata");
   const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${limit}&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Errore nella chiamata alle API di YouTube");
-  const data = await res.json();
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Errore nella chiamata alle API di YouTube. Status:", res.status, "Risposta:", text);
+    throw new Error("Errore nella chiamata alle API di YouTube");
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    const text = await res.text();
+    console.error("Errore di parsing JSON dalla risposta search:", text);
+    throw new Error("Errore di parsing JSON dalla risposta search");
+  }
+  if (!data.items) {
+    console.error("Risposta search API senza items:", data);
+    throw new Error("Risposta search API senza items");
+  }
   const videoIds = data.items.map((item: any) => item.id.videoId).join(",");
-  // Recupera dettagli dei video (durata, ecc)
   const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
   const detailsRes = await fetch(detailsUrl);
-  if (!detailsRes.ok) throw new Error("Errore nel recupero dettagli video");
-  const detailsData = await detailsRes.json();
+  if (!detailsRes.ok) {
+    const text = await detailsRes.text();
+    console.error("Errore nel recupero dettagli video. Status:", detailsRes.status, "Risposta:", text);
+    throw new Error("Errore nel recupero dettagli video");
+  }
+  let detailsData;
+  try {
+    detailsData = await detailsRes.json();
+  } catch (e) {
+    const text = await detailsRes.text();
+    console.error("Errore di parsing JSON dalla risposta details:", text);
+    throw new Error("Errore di parsing JSON dalla risposta details");
+  }
+  if (!detailsData.items) {
+    console.error("Risposta details API senza items:", detailsData);
+    throw new Error("Risposta details API senza items");
+  }
   const results: SearchResult[] = detailsData.items.map((item: any) => {
     const durationISO = item.contentDetails.duration;
-    // Converti ISO 8601 duration in secondi
     const match = durationISO.match(/PT(?:(\d+)M)?(?:(\d+)S)?/);
     const minutes = match && match[1] ? parseInt(match[1]) : 0;
     const seconds = match && match[2] ? parseInt(match[2]) : 0;

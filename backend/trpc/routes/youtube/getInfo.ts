@@ -9,25 +9,23 @@ const videoIdSchema = z.object({
 
 export default publicProcedure
   .input(videoIdSchema)
-  .query(async ({ input }) => {
+  .query(async ({ input, ctx }) => {
     try {
-      // In a real implementation, you would use ytdl-core to get video info
-      // For now, we'll return mock data based on the video ID
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Generate mock video info
+      // Recupera info reali dal video YouTube usando ytdl-core
+      const info = await ytdl.getInfo(input.videoId);
+      const audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
+      const bestAudio = audioFormats[0];
+      if (!bestAudio || !bestAudio.url) throw new Error("Audio non trovato");
       return {
         id: input.videoId,
-        title: `Song Title for ${input.videoId}`,
-        artist: `Artist for ${input.videoId}`,
-        album: `Album for ${input.videoId}`,
-        thumbnail: `https://picsum.photos/seed/${input.videoId}/300/300`,
-        duration: Math.floor(Math.random() * 300) + 60, // 1-6 minutes
-        genre: ["Pop", "Rock", "Hip-Hop", "Electronic"][Math.floor(Math.random() * 4)],
-        releaseDate: new Date().toISOString(),
-        audioUrl: `https://musiclite-api.onrender.com/audio/${input.videoId}.mp3`, // This would be a real stream URL
+        title: info.videoDetails.title,
+        artist: info.videoDetails.author.name,
+        album: info.videoDetails.author.name + " - YouTube",
+        thumbnail: info.videoDetails.thumbnails?.[info.videoDetails.thumbnails.length-1]?.url || "",
+        duration: parseInt(info.videoDetails.lengthSeconds),
+        genre: info.videoDetails.category || "YouTube",
+        releaseDate: info.videoDetails.publishDate,
+        audioUrl: bestAudio.url,
       };
     } catch (error) {
       console.error("Error getting video info:", error);
