@@ -17,23 +17,26 @@ interface SearchResult {
 
 // Chiave API YouTube (da impostare in variabile ambiente)
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || "";
+console.log("[YouTube API] YOUTUBE_API_KEY presente:", !!YOUTUBE_API_KEY, YOUTUBE_API_KEY ? YOUTUBE_API_KEY.substring(0, 6) + "..." : "(vuota)");
 
 // Cerca video su YouTube
 export async function searchYouTube(query: string, limit = 20): Promise<SearchResult[]> {
+  console.log("[YouTube API][searchYouTube] Query:", query, "Limit:", limit);
   if (!YOUTUBE_API_KEY) throw new Error("YouTube API key non configurata");
   const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${limit}&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+  console.log("[YouTube API][searchYouTube] URL chiamato:", url);
   const res = await fetch(url);
+  const rawText = await res.text();
+  console.log("[YouTube API][searchYouTube] Risposta grezza search:", rawText);
   if (!res.ok) {
-    const text = await res.text();
-    console.error("Errore nella chiamata alle API di YouTube. Status:", res.status, "Risposta:", text);
-    throw new Error("Errore nella chiamata alle API di YouTube");
+    console.error("Errore nella chiamata alle API di YouTube. Status:", res.status, "Risposta:", rawText, "URL:", url);
+    throw new Error("Errore nella chiamata alle API di YouTube: " + rawText);
   }
   let data;
   try {
-    data = await res.json();
+    data = JSON.parse(rawText);
   } catch (e) {
-    const text = await res.text();
-    console.error("Errore di parsing JSON dalla risposta search:", text);
+    console.error("Errore di parsing JSON dalla risposta search:", rawText);
     throw new Error("Errore di parsing JSON dalla risposta search");
   }
   if (!data.items) {
@@ -42,18 +45,19 @@ export async function searchYouTube(query: string, limit = 20): Promise<SearchRe
   }
   const videoIds = data.items.map((item: any) => item.id.videoId).join(",");
   const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+  console.log("[YouTube API][searchYouTube] URL dettagli:", detailsUrl);
   const detailsRes = await fetch(detailsUrl);
+  const detailsRawText = await detailsRes.text();
+  console.log("[YouTube API][searchYouTube] Risposta grezza details:", detailsRawText);
   if (!detailsRes.ok) {
-    const text = await detailsRes.text();
-    console.error("Errore nel recupero dettagli video. Status:", detailsRes.status, "Risposta:", text);
-    throw new Error("Errore nel recupero dettagli video");
+    console.error("Errore nel recupero dettagli video. Status:", detailsRes.status, "Risposta:", detailsRawText, "URL:", detailsUrl);
+    throw new Error("Errore nel recupero dettagli video: " + detailsRawText);
   }
   let detailsData;
   try {
-    detailsData = await detailsRes.json();
+    detailsData = JSON.parse(detailsRawText);
   } catch (e) {
-    const text = await detailsRes.text();
-    console.error("Errore di parsing JSON dalla risposta details:", text);
+    console.error("Errore di parsing JSON dalla risposta details:", detailsRawText);
     throw new Error("Errore di parsing JSON dalla risposta details");
   }
   if (!detailsData.items) {
