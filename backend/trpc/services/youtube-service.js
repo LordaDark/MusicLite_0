@@ -28,8 +28,20 @@ async function searchYouTube(query, limit = 20) {
             type: "video",
             key: apiKey
         };
-        const response = await axios.get(url, { params });
+        let response;
+        try {
+            response = await axios.get(url, { params });
+        } catch (err) {
+            // Logga la risposta completa in caso di errore
+            if (err.response) {
+                console.error("Risposta errore YouTube API:", err.response.status, err.response.statusText, err.response.data);
+            } else {
+                console.error("Errore richiesta YouTube API:", err.message);
+            }
+            throw new Error("Errore nella richiesta alle API di YouTube");
+        }
         if (!response.data || !response.data.items) {
+            console.error("Risposta API YouTube non valida:", response.data);
             throw new Error("Risposta API YouTube non valida");
         }
         const results = response.data.items.map(item => ({
