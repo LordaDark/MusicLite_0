@@ -25,10 +25,21 @@ app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running" });
 });
 
-// Endpoint di ricerca di prova
-app.get("/search", (c) => {
+// Endpoint di ricerca reale su YouTube
+import { searchYouTube } from "./trpc/services/youtube-service";
+
+app.get("/search", async (c) => {
   const query = c.req.query("q") || "";
-  return c.json({ status: "success", message: `Risultato ricerca per: ${query}` });
+  const limit = Number(c.req.query("limit")) || 20;
+  if (!query) {
+    return c.json({ status: "error", message: "Parametro 'q' mancante nella query." }, 400);
+  }
+  try {
+    const results = await searchYouTube(query, limit);
+    return c.json({ status: "success", results });
+  } catch (error) {
+    return c.json({ status: "error", message: error instanceof Error ? error.message : String(error) }, 500);
+  }
 });
 
 export default app;
