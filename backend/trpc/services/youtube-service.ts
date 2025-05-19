@@ -44,7 +44,7 @@ export async function searchYouTube(query: string, limit = 20): Promise<SearchRe
     throw new Error("Risposta search API senza items");
   }
   const videoIds = data.items.map((item: any) => item.id.videoId).join(",");
-  const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+  const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${encodeURIComponent(videoIds)}&key=${YOUTUBE_API_KEY}`;
   console.log("[YouTube API][searchYouTube] URL dettagli:", detailsUrl);
   const detailsRes = await fetch(detailsUrl);
   const detailsRawText = await detailsRes.text();
