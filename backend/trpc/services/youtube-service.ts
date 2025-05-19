@@ -16,7 +16,7 @@ interface SearchResult {
 }
 
 // Chiave API YouTube (da impostare in variabile ambiente)
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || "";
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyDJEMQDBr3qo-c26SixXIs7jGYnkh2eFj4'; // Sostituisci con la tua chiave reale
 console.log("[YouTube API] YOUTUBE_API_KEY presente:", !!YOUTUBE_API_KEY, YOUTUBE_API_KEY ? YOUTUBE_API_KEY.substring(0, 6) + "..." : "(vuota)");
 
 // Cerca video su YouTube
