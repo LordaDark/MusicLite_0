@@ -1,7 +1,7 @@
 const { createServer } = require('http');
 const app = require('./hono').default;
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
 // Funzione per convertire Node.js IncomingMessage in Fetch API Request
 function nodeRequestToFetchRequest(req) {

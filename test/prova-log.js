@@ -1,12 +1,12 @@
 // Script di prova per scrivere un log sulla console
 console.log("[PROVA-LOG] Script eseguito correttamente! Ora puoi vedere questo messaggio nel terminale.");
 
-// Effettua una richiesta HTTP GET all'API di MusicLite su Render
+// Effettua una richiesta HTTP GET all'API di MusicLite su Render per la ricerca
 const https = require('https');
 
 const options = {
-  hostname: 'musiclite-api.onrender.com',
-  path: '/',
+  hostname: 'musiclite.onrender.com',
+  path: '/search?q=mamma',
   method: 'GET'
 };
 

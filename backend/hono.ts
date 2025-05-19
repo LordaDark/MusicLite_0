@@ -25,4 +25,10 @@ app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running" });
 });
 
+// Endpoint di ricerca di prova
+app.get("/search", (c) => {
+  const query = c.req.query("q") || "";
+  return c.json({ status: "success", message: `Risultato ricerca per: ${query}` });
+});
+
 export default app;
